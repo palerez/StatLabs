@@ -1,0 +1,66 @@
+---
+title: "Lab 6"
+author: "Alain Perez"
+date: "3/5/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+library(babynames)
+library(tidyverse)
+jessie<-filter(babynames, name=="Jessie")
+
+
+```
+Creating a plot to see the number of Jesses born female and male.
+
+```{r}
+jessie %>%
+  ggplot(aes(x=year, y=n, color=sex))+geom_line()
+  
+
+
+```
+
+##Excercise 2 ##
+
+We cannot mutate because we already have a variable that keeps track of the sex of the baby we would want to count the number of babies born of each sex per year.
+
+Trying out summarize
+
+```{r}
+jessie%>%
+  filter(year == 1982)%>%
+  summarize(total=sum(n),
+            num_males=sum(ifelse(sex=="M", n, 0)))
+
+```
+## Excercise 3 ##
+```{r}
+jessie%>%
+  filter(year == 1982)%>%
+  summarize(total=sum(n),num_males=sum(ifelse(sex =="M",n,0)))%>%
+  mutate(male_prop=num_males/total)
+```
+
+Slicing files by year:
+
+```{r}
+jessie_by_year<- babynames%>%
+  filter(name =="Jessie")%>%
+  group_by(year)%>%
+  summarize(
+    num_rows=n(),
+    total_births=sum(n),
+    num_males=sum(ifelse(sex=="M",n,0)),
+    num_famles=sum(ifelse(sex=="F", n,0)))%>%
+  mutate(prop_males=num_males/total_births)
+jessie_by_year
+    
+```
+

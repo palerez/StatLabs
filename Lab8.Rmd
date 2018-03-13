@@ -1,0 +1,118 @@
+---
+title: "LAB8"
+author: "Alain Perez"
+date: "3/9/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###LAB8###
+```{r}
+library(tidyverse)
+library(babynames)
+data(babynames)
+data(births)
+
+```
+
+```{r}
+census_births<-births
+ssa_births<-babynames%>%
+  rename(num_births=n)%>%
+  group_by(year)%>%
+  summarize(num_rows=n(),births=sum(num_births))
+total_births<-ssa_births%>%
+  full_join(census_births, by="year")
+head(total_births)
+```
+renaming the variables 
+
+
+```{r}
+total_births<-total_births%>%
+  select(-num_rows)%>%
+  rename(ssa= births.x, census = births.y)
+head(total_births)
+
+```
+
+```{r}
+total_births%>%
+  ggplot(aes(x=year))+geom_line(aes(y=census), color="blue")+geom_line(aes(y=ssa), color="Red")+xlab("Year")+ylab("Total Births")
+
+```
+
+Using the gather function
+
+```{r}
+births_long<-total_births%>%
+  gather(
+    key="source",
+    value="births",
+    census,ssa
+  )
+head(births_long)
+```
+
+```{r}
+births_long%>%
+  ggplot(aes(x= year, y= births, color=source))+geom_line()
+
+```
+
+```{r}
+total_births%>%
+  ggplot(aes(x = ssa, y=census))+geom_point()
+
+```
+
+```{r}
+births_long<-births_long%>%
+  distinct()
+births_long%>%
+  filter(source =="census")%>%
+  tail()
+births_wide<-births_long%>%
+  spread(key = source, value=births)
+head(births_wide)
+```
+
+lets get the correlation
+
+```{r}
+mosaic::cor(census~ssa, data = births_wide, use="pairwise.complete")
+```
+
+```{r}
+births_wide%>%
+  mutate(discrepancy = census-ssa)%>%
+  ggplot(aes(x=year, y=discrepancy))+geom_line()+ylab("Census Estimate-SSA Estimate")
+
+```
+
+Reading in the CSV file.
+
+```{r}
+mortality<-read.csv("indicator_gapminder_under5mortality.csv")
+mortality<-mortality%>%
+  filter(!is.na(X1800))
+dim(mortality)
+#View(mortality)
+mortality%>%
+gather(
+  key="Year",
+  value = "death",
+  X1800:X2015
+  )%>%
+  ggplot(aes(x=Year, y=death))+geom_line()
+  
+```
+
+
+
+
+
+

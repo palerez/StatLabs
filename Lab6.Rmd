@@ -161,3 +161,12 @@ babynames%>%
 
 
 ```
+
+###LAB7###
+```{r}
+total_births<-total_births%>%
+  select(-num_rows)%>%
+  rename(ssa=births.x, census=births.y)
+head(total_births)
+
+```

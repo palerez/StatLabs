@@ -96,18 +96,19 @@ births_wide%>%
 Reading in the CSV file.
 
 ```{r}
-mortality<-read.csv("indicator_gapminder_under5mortality.csv")
-mortality<-mortality%>%
-  filter(!is.na(X1800))
-dim(mortality)
-#View(mortality)
-mortality%>%
+mortality<-read.csv("Mortality1.csv")
+#dim(mortality)
+  mortality<-mortality%>%
 gather(
   key="Year",
-  value = "death",
-  X1800:X2015
-  )%>%
-  ggplot(aes(x=Year, y=death))+geom_line()
+  value = "Death",
+  X1800:X2015, na.rm=TRUE
+  ) 
+mortality<-mortality%>%
+  mutate(Year = parse_number(Year), Death=parse_number(Death))%>%
+  filter(Country == c("United States", "Canada", "Chile", "Cuba", "China", "Russia", "Australia", "Angola", "Ecuador"))
+ggplot(mortality, aes(x=Year, y=Death, color=Country))+geom_line()+ylab("Mortality (per 1,000)")+ggtitle("Infant Mortality Rate")+theme(plot.title = element_text(hjust = 0.5))
+
   
 ```
 

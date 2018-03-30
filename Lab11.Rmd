@@ -1,0 +1,106 @@
+---
+title: "Lab11"
+author: "Alain Perez"
+date: "3/28/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(rvest)
+url<-"http://www.boxofficemojo.com/alltime/weekends/"
+raw_html<-read_html(url)
+raw_html
+tables<- raw_html%>%
+  html_nodes("table")
+tables
+box_office_table<-tables[[5]]
+box_office_table
+
+box_office_data <- box_office_table %>% html_table(header = TRUE)
+head(box_office_data)
+
+```
+
+##Excercise 1##
+
+```{r}
+list_of_dfs<-lapply(tables,html_table, header=TRUE, fill=TRUE)
+lapply(list_of_dfs,dim)
+names(box_office_data)
+
+box_office_data<-box_office_data%>%
+  rename(
+    rank=`Rank`,
+    title=`Title (click to view)`,
+    studio=`Studio`,
+    opening=`Opening*`,
+    pct_of_total=`% of Total`,
+    theaters= `Theaters`,
+    average_gross=`Avg.`,
+    total_gross=`Total Gross^`,
+    date=`Date**`
+  )
+head(box_office_data)
+```
+```{r}
+box_office_data%>%
+  ggplot(aes(x=date, y=opening))+geom_point(aes(size=pct_of_total,color=pct_of_total))+
+  xlab("Opening Date")+ylab("Opening Day Gross")
+
+glimpse(box_office_data)
+box_office_data<-box_office_data%>%
+  mutate(
+    opening=parse_number(opening),
+    pct_of_total=parse_number(pct_of_total),
+    theaters=parse_number(theaters),
+    average_gross=parse_number(average_gross),
+    total_gross=parse_number(total_gross)
+  )
+glimpse(box_office_data)
+```
+
+Handeling Dates
+
+```{r}
+library(lubridate)
+box_office_data<-box_office_data%>%
+  mutate(date=mdy(date))
+glimpse(box_office_data)
+```
+
+Retry at plotting
+
+```{r}
+library(scales)
+box_office_data %>%
+  ggplot(aes(x = date, y = opening)) +
+  geom_point(aes(color = pct_of_total, size = pct_of_total)) +
+  guides(
+    color = guide_legend("Percent of Total"),
+    size = guide_legend("Percent of Total")) +
+  scale_y_continuous(
+    "Opening Day Box Office Gross",
+    labels = dollar) +
+  xlab("Opening Date")
+```
+
+##Excercise 3##
+
+```{r}
+url<-"https://www.the-numbers.com/box-office-records/domestic/all-movies/weekend/opening/"
+raw_html2<-read_html(url)
+raw_html2
+tables<-raw_html2%>%
+  html_node("table")
+tables
+excercise_table<-tables[[1]]
+excercise_table
+
+excercise_data<-excercise_table%>%html_table(header=TRUE)
+head(excercise_data)
+```

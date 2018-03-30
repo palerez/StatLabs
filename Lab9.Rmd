@@ -1,0 +1,81 @@
+---
+title: "Lab9"
+author: "Alain Perez"
+date: "3/14/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load in all the packages
+```{r}
+library(tidyverse)
+library(babynames)
+data(babynames)
+data(births)
+
+```
+
+```{r}
+babynames%>%
+  filter(name=="Colin")%>%
+  group_by(year)%>%
+  summarise(overall_percentage=100*sum(.5*prop))%>%
+  arrange(desc(overall_percentage))%>%
+  head(1)%>%
+  select(year,overall_percentage)
+
+
+```
+Lets wrtie a function for the most popular year for a give name.
+```{r}
+most_popular_year<-function(target)
+{
+  babynames%>%
+    filter(name==target)%>%
+    group_by(year)%>%
+    summarise(overall_percentage=100*sum(.5*prop))%>%
+    arrange(desc(overall_percentage))%>%
+    head(1)%>%
+    select(year, overall_percentage)
+  
+}
+
+```
+
+Playing with the function by inseting different names
+
+```{r}
+most_popular_year("Alain")
+most_popular_year("Jared")
+most_popular_year("Camillie")
+formals(most_popular_year)
+```
+
+adjust most_popular_year function to return several years
+
+```{r}
+most_popular_year<- function(target, num_years=1){
+  babynames%>%
+    filter(name == target)%>%
+    group_by(year)%>%
+    summarize(
+      name= name[1],
+      overall_percentage =100*sum(.5*prop))%>%
+    arrange(desc(overall_percentage))%>%
+    head(n=num_years)%>%
+    select(name, year, overall_percentage)
+  
+}
+most_popular_year("Colin")
+most_popular_year("Colin",5)
+```
+##Excercise 1##
+
+```{r}
+library(nycflights13)
+View(flights)
+```
+

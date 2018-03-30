@@ -92,15 +92,53 @@ box_office_data %>%
 ##Excercise 3##
 
 ```{r}
-url<-"https://www.the-numbers.com/box-office-records/domestic/all-movies/weekend/opening/"
-raw_html2<-read_html(url)
-raw_html2
-tables<-raw_html2%>%
-  html_node("table")
-tables
-excercise_table<-tables[[1]]
-excercise_table
+#library(tidyverse)
+#library(rvest)
+#library(scales)
+#url<-"https://www.the-numbers.com/box-office-records/domestic/all-movies/weekend/opening"
 
-excercise_data<-excercise_table%>%html_table(header=TRUE)
-head(excercise_data)
+r#aw_html2<-read_html(url)
+
+#tables<-raw_html2 %>% html_node("table")
+
+#excercise<-tables[[2]]
+
+#excercise <- excercise %>% html_table(header = TRUE)
+
+
+```
+
+```{r}
+library(tidyverse)
+library(rvest)
+url2 <- "https://www.the-numbers.com/box-office-records/domestic/all-movies/weekend/opening"
+raw_html <- read_html(url2)
+raw_html
+tables <- raw_html %>% html_nodes("table")
+tables
+box <- tables[[2]]
+box
+box <- box %>% html_table(header = TRUE)
+head(box)
+list_of_dfs <- lapply(tables, html_table, header = TRUE, fill = TRUE)
+lapply(list_of_dfs, dim)
+names(box)
+
+head(box)
+
+library(lubridate)
+box<-box%>%
+  mutate(Date=mdy(Date))
+glimpse(box)
+
+box<-box%>%
+  mutate(Gross=parse_number(Gross),
+         PerTheater=parse_number(PerTheater),
+         TotalGross=parse_number(TotalGross))
+head(box)
+
+#View(box)
+
+box%>%
+  ggplot(aes(x=Date,y=PerTheater, color=Rank))+geom_point()
 ```

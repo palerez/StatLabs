@@ -1,5 +1,5 @@
 ---
-title: "lab12"
+title: "Lab 13"
 output: html_document
 ---
 
@@ -8,212 +8,32 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-library(dbplyr)
+library(dplyr)
 library(mdsr)
 library(RMySQL)
-db<-dbConnect_scidb("airlines")
-
-
-dbListTables(db)
-flights<-tbl(db,"flights")
-```
-
-```{sql connection=db}
-
-SELECT * FROM flights LIMIT 0,10
-
-```
-
-```{sql connection=db}
-SELECT year,month,day,carrier,flight,origin,dest FROM flights LIMIT 0,10;
-
-```
-
-```{sql connection=db}
-SELECT year,month,day,carrier,flight,origin,dest 
-FROM flights
-WHERE year=2013 AND month=6 AND day=29 AND carrier='UA'
-LIMIT 0,10; 
-```
-```{sql connection=db}
-SELECT flight,origin,dest FROM flights
-WHERE year=2012
-  AND month=6
-  AND day=29
-  AND carrier='UA'
-LIMIT 0,10;
-```
-
-```{sql connection=db}
-SELECT carrier,flight FROM flights
-WHERE year=2012
-AND month=6
-AND day BETWEEN 25 AND 30
-LIMIT 0,10;
-
-```
-```{sql connection=db}
-SELECT month,day,carrier,flight FROM flights
-WHERE year=2012
-AND (month=6 BETWEEN 15 AND 30)
-OR (month=7 BETWEEN 1 AND 14)
-LIMIT 0,10;
+db<- dbConnect_scidb("airlines")
 
 ```
 
 ```{sql connection=db}
 SELECT 
-  str_to_date(concat(year, "-", month,"-", day), '%Y-%m-%d') as date,
-  origin, dest, flight, carrier
+  name, year, 
+  365*sum(1) as numflights,
+    sum(if(arr_delay < 0, 1, 0)) / sum(1) AS early_pct,
+  365 * sum(if(arr_delay > 0, arr_delay, 0)) / 1000000 AS min_late,
+  365 * sum(if(arr_delay < 0, arr_delay, 0)) / 1000000 AS min_early,
+  365 * sum(arr_delay) / 1000000 AS net_delay,
+  365*  sum(if(arr_delay =0,arr_delay+270,0)) / 1000000 AS cancled_flight,
+  365*sum(if(arr_delay<120 and arr_delay>0, 1,0))  as small_delay,
+  365*sum(if(arr_delay>120, 1,0)) as big_delay
 FROM flights
-WHERE carrier='UA'
-HAVING date BETWEEN '2012-06-16' AND '2012-07-14'
-ORDER BY flight asc
-LIMIT 0,10;
-```
-```{sql connection=db}
-SHOW TABLES;
+left join carriers on flights.carrier=carriers.carrier
+WHERE year = 2014 AND month = 1 AND day = 4
+GROUP BY name
+
 
 ```
 
-```{sql connection=db}
-SELECT avg(dep_delay) AS avg_delay
-FROM flights
-WHERE year = 2012 AND month = 6 AND day = 29;
-```
 
 
-```{sql connection=db}
-SELECT
-  sum(1) AS N1,
-  count(*) AS N2,
-  avg(dep_delay) AS avg_delay
-FROM flights
-WHERE year = 2012 AND month =6 AND day =29
-```
 
-```{sql connection=db}
-SELECT 
-  carrier,
-  count(*) AS num_flights,
-  avg(dep_delay) AS avg_delay
-FROM flights
-WHERE year = 2012 AND month =6 AND day =29
-GROUP BY carrier 
-ORDER BY avg_delay ASC;
-
-```
-
-```{sql connection=db}
-DESCRIBE carriers;
-```
-
-```{sql connection=db}
-SELECT 
-  f.carrier,
-  c.name,
-  count(*) AS num_flights,
-  avg(dep_delay) AS avg_delay
-FROM flights AS f
-LEFT JOIN carriers AS c ON f.carrier=c.carrier
-WHERE year=2012 AND month =6 AND day =29
-GROUP BY carrier
-HAVING num_flights>1000
-ORDER BY avg_delay ASC;
-```
-
-```{sql connection=db}
-(SELECT
-  f.carrier,c.name,
-  year,month,day,
-  count(*) AS num_flights
-FROM flights AS f
-LEFT JOIN carriers AS c ON f.carrier=c.carrier
-WHERE year=2012 AND  month =6 AND day=29
-GROUP BY carrier
-HAVING num_flights>1000)
-UNION
-(SELECT
-  f.carrier,
-  c.name,
-  year,month,day,
-  count(*) AS num_flights
-FROM flights AS f
-LEFT JOIN carriers AS c ON f.carrier=c.carrier
-WHERE year=2014 AND month=10 AND day=13
-GROUP BY carrier
-HAVING num_flights>1000)
-ORDER BY num_flights DESC;
-```
-
-```{sql connection=db}
-SELECT
-  f.carrier,
-  c.name,
-  year, month, day,
-  count(*) AS num_flights
-FROM flights AS f
-LEFT JOIN carriers AS c ON f.carrier=c.carrier
-WHERE (year = 2012 AND month =6 AND day =29) OR
-      (year= 2014 AND month=10 AND day=13)
-GROUP BY carrier, year, month, day
-HAVING num_flights>1000
-ORDER BY num_flights DESC;
-```
-
-```{r}
-im<-dbConnect_scidb("imdb")
-```
-
-```{sql connection=im}
-SHOW TABLES;
-```
-```{sql connection=im}
-DESCRIBE title
-```
-
-
-```{sql connection=im}
-SELECT
-  title
-FROM title
-WHERE title LIKE 'Star Wars'
-
-```
-
-```{sql connection=im }
-DESCRIBE char_name
-```
-
-```{sql connection=im}
-SELECT *
-  FROM name
-WHERE name LIKE 'Davis, Viola'
-```
-
-
-```{sql connection=im}
-SELECT *
-from cast_info
-WHERE id = '2977372'
---person_id = 380576
-```
-
-```{sql connection = im}
-SELECT
-name.id,
-cast.id,
-char.id,
-title.id
-title,
-production_year,
-char.name
-FROM name AS name
-LEFT JOIN cast_info AS cast ON name.id = cast.id
-LEFT JOIN char_name AS char ON name.id = char.id
-LEFT JOIN title AS title ON name.id = title.id
-WHERE name.id LIKE 'Davis, Viola'
-HAVING id = '2977372'
-ORDER BY production_year ASC;
-
-```

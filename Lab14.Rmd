@@ -1,0 +1,61 @@
+---
+title: "Lab14"
+output: html_document
+---
+
+```{r}
+library(sf)
+nc<-system.file("shape/nc.shp", package = "sf")%>%
+  st_read()
+library(dplyr)
+nc%>% select(AREA, NAME, geometry)
+
+```
+
+```{r}
+nc %>% select(AREA, geometry)%>% plot()
+library(ggplot2)
+names(nc)
+```
+
+```{r}
+head(nc)
+
+```
+
+
+```{r}
+nc%>%
+  ggplot(aes(fill=AREA))+geom_sf()
+nc
+```
+
+```{r}
+library(macleish)
+names(macleish_layers)
+```
+
+```{r}
+macleish_layers[["buildings"]]%>% plot()
+macleish_layers[["streams"]]%>% plot()
+macleish_layers[["trails"]]%>% plot()
+```
+
+```{r}
+library(leaflet)
+betchel1<-data.frame(lat=42.449167, lon = -72.679389)
+base_plot<-leaflet()%>%
+    addTiles()%>%
+  addMarkers(lng=~lon, lat=~lat, data=betchel1,
+             popup="Bechtel Environmental Classroom")
+
+base_plot %>%
+  addPolygons(data=macleish_layers[["buildings"]], 
+              weight=1, color="Green") %>%
+  addPolygons(data=macleish_layers[["trails"]], 
+              weight=1, color = "yellow")%>%
+  addPolygons(data=macleish_layers[["streams"]], 
+              weight=1, color="red")%>%
+  addPolygons(data=macleish_layers[["forests"]], 
+              weight=1, fillOpacity=0.2)
+```
